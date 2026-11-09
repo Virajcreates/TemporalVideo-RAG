@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SieveRAG &mdash; Temporal Video RAG Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <!-- Top Telemetry Command Bar (Tactical Reticle & Telemetry Cells) -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="logo-icon" title="SieveRAG Workstation">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="3" y1="15" x2="21" y2="15"></line>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+          <line x1="15" y1="3" x2="15" y2="21"></line>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">SIEVERAG <span class="badge-version">v0.3.0 // NAVIT-28</span></span>
+        <span class="brand-subtitle">TEMPORAL MULTIMODAL INTELLIGENCE</span>
+      </div>
+    </div>
+
+    <!-- Tabular Telemetry Header Bar -->
+    <div class="telemetry-bar" id="telemetry-bar">
+      <div class="telemetry-pill">
+        <span class="label">VIDEOS</span>
+        <span class="value" id="stat-videos">0</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">STORYBOARDS</span>
+        <span class="value accent-cyan" id="stat-storyboards">0</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">DISTURBANCES</span>
+        <span class="value accent-amber" id="stat-disturbances">0</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">TOKEN REDUCTION</span>
+        <span class="value accent-emerald" id="stat-savings">0.0%</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">QWEN-7B KV VRAM</span>
+        <span class="value" id="stat-qwen-kv">0.0 MB</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">INDEX ENGINE</span>
+        <span class="value" id="stat-backend">LOCAL</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-refresh" id="btn-refresh-stats" title="Refresh Telemetry">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+          <path d="M16 16h5v5"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- 3-Column Flush Split-Pane Workspace -->
+  <main class="command-center-layout">
+    
+    <!-- LEFT COLUMN: Ingestion & Corpus Registry -->
+    <section class="panel panel-library">
+      <div class="panel-header">
+        <h2>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          Ingestion &amp; Registry
+        </h2>
+      </div>
+
+      <!-- Ingestion Form -->
+      <form class="ingest-form" id="ingest-form">
+        <div class="form-tabs">
+          <button type="button" class="tab-btn active" id="tab-file-mode">File Upload</button>
+          <button type="button" class="tab-btn" id="tab-local-mode">Local Disk Path</button>
+        </div>
+
+        <div class="tab-content" id="content-file-mode">
+          <div class="drop-zone" id="drop-zone">
+            <input type="file" id="video-file-input" accept="video/mp4,video/quicktime,video/webm" />
+            <div class="drop-prompt">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                <path d="M12 12v9"></path>
+                <path d="m16 16-4-4-4 4"></path>
+              </svg>
+              <span id="file-label">Choose video or drag here</span>
+              <span class="file-hint">MP4, MOV, WEBM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content hidden" id="content-local-mode">
+          <div class="form-group">
+            <label for="local-path-input">Full Local Video Path:</label>
+            <input type="text" id="local-path-input" placeholder="C:\videos\surveillance_cam1.mp4" />
+          </div>
+        </div>
+
+        <!-- Ingestion Settings -->
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="target-vlm-select">Target VLM Engine:</label>
+            <select id="target-vlm-select">
+              <option value="gemini" selected>Google Gemini (Dynamic)</option>
+              <option value="gpt-4o">OpenAI GPT-4o (512x512)</option>
+              <option value="qwen-vl">Qwen-VL (Patch-28 Aligned)</option>
+              <option value="local-7b">Local 7B (GGUF / Ollama)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-switches">
+          <label class="switch-control">
+            <input type="checkbox" id="run-vlm-check" checked />
+            <span class="switch-slider"></span>
+            <span class="switch-label">VLM Multimodal Extraction</span>
+          </label>
+          <label class="switch-control">
+            <input type="checkbox" id="index-episodes-check" checked />
+            <span class="switch-slider"></span>
+            <span class="switch-label">Pinecone / Vector Indexing</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-ingest">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span class="btn-text">Ingest &amp; Sieve Video</span>
+          <span class="spinner hidden" id="ingest-spinner"></span>
+        </button>
+      </form>
+
+      <!-- Video Library Header -->
+      <div class="panel-subheader">
+        <h3>Corpus Registry (<span id="library-count">0</span>)</h3>
+        <button class="btn-link" id="btn-refresh-library">Refresh</button>
+      </div>
+
+      <!-- Ingested Videos List -->
+      <div class="video-cards-scroll" id="video-cards-container">
+        <div class="empty-state">No videos ingested yet. Upload or ingest a video above.</div>
+      </div>
+    </section>
+
+
+    <!-- CENTER COLUMN: Video Monitor, Tactical Timeline Scrubber & Episode Dossier -->
+    <section class="panel panel-viewer">
+      <div class="panel-header">
+        <div class="viewer-title-row">
+          <h2 id="active-video-title">No Video Selected</h2>
+          <span class="badge badge-info hidden" id="active-video-meta">--</span>
+        </div>
+        <div class="viewer-actions">
+          <span class="time-display" id="player-time-display">00:00.00 / 00:00.00</span>
+        </div>
+      </div>
+
+      <!-- Main Video Player -->
+      <div class="player-wrapper">
+        <video id="main-video-player" playsinline controls preload="metadata">
+          <p>Your browser does not support HTML5 video playback.</p>
+        </video>
+        <div class="player-overlay-message hidden" id="player-placeholder">
+          Select or ingest a video from the library to begin interactive playback.
+        </div>
+      </div>
+
+      <!-- Interactive Temporal Timeline Scrubber -->
+      <div class="timeline-section">
+        <div class="timeline-header">
+          <span class="timeline-label">Temporal Motion Episodes</span>
+          <span class="timeline-hint">Click segment to seek playhead</span>
+        </div>
+        <div class="timeline-track-container" id="timeline-track-container">
+          <div class="timeline-track" id="timeline-track">
+            <!-- Dynamic Episode Segments inserted here -->
+            <div class="playhead" id="timeline-playhead"></div>
+          </div>
+        </div>
+        <div class="timeline-legend">
+          <div class="legend-item"><span class="legend-dot dot-normal"></span> Nominal Motion</div>
+          <div class="legend-item"><span class="legend-dot dot-anomaly"></span> Security Anomaly / Alert</div>
+          <div class="legend-item"><span class="legend-dot dot-current"></span> Playhead</div>
+        </div>
+      </div>
+
+      <!-- Active Episode & Storyboard Inspector -->
+      <div class="episode-inspector" id="episode-inspector">
+        <div class="inspector-header">
+          <div class="inspector-title">
+            <h3 id="inspector-ep-title">Select an Episode</h3>
+            <span class="badge hidden" id="inspector-ep-badge">--</span>
+          </div>
+          <div class="inspector-controls">
+            <span class="inspector-timing" id="inspector-ep-time">--</span>
+          </div>
+        </div>
+
+        <div class="inspector-grid">
+          <!-- Storyboard & Audio -->
+          <div class="inspector-media-col">
+            <div class="storyboard-preview-card" id="storyboard-preview-card">
+              <img id="inspector-storyboard-img" src="" alt="Storyboard Preview" class="hidden" />
+              <div class="storyboard-placeholder" id="storyboard-placeholder">
+                <span>No Storyboard Available</span>
+              </div>
+              <button class="btn-zoom-storyboard hidden" id="btn-zoom-storyboard" title="Enlarge Storyboard">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Sliced Episode Audio Player -->
+            <div class="episode-audio-box">
+              <span class="audio-label">16kHz Audio Track:</span>
+              <audio id="inspector-audio-player" controls preload="none">
+                Your browser does not support audio playback.
+              </audio>
+            </div>
+          </div>
+
+          <!-- Extraction Metadata & Narrative -->
+          <div class="inspector-meta-col">
+            <div class="meta-block">
+              <label>Narrative Summary:</label>
+              <p id="inspector-summary">Click an episode segment on the timeline above to view full multimodal telemetry.</p>
+            </div>
+
+            <div class="meta-row">
+              <div class="meta-block flex-1">
+                <label>Actors Detected:</label>
+                <div class="tag-cloud" id="inspector-actors">&mdash;</div>
+              </div>
+              <div class="meta-block flex-1">
+                <label>Objects Detected:</label>
+                <div class="tag-cloud" id="inspector-objects">&mdash;</div>
+              </div>
+            </div>
+
+            <div class="meta-block">
+              <label>Audio Cues &amp; Transcript:</label>
+              <div class="audio-transcript-box" id="inspector-transcript">&mdash;</div>
+            </div>
+
+            <div class="meta-block">
+              <div class="tile-actions-header">
+                <label>Itemized Tile Actions (Click to Seek Video):</label>
+                <span class="grid-spec" id="inspector-grid-spec">Grid: --</span>
+              </div>
+              <div class="tile-actions-list" id="inspector-tile-actions">
+                <div class="empty-tile-prompt">No tile actions detected.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- RIGHT COLUMN: Temporal Video RAG Q&A Console -->
+    <section class="panel panel-rag">
+      <div class="panel-header">
+        <h2>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          Temporal Video RAG Console
+        </h2>
+      </div>
+
+      <!-- Query Form -->
+      <div class="rag-query-box">
+        <textarea id="rag-query-input" rows="3" placeholder="Ask questions or search videos (e.g. 'What happened in the warehouse when the forklift moved?' or 'Find high severity alerts')"></textarea>
+        
+        <!-- Filter Controls Toggle -->
+        <div class="rag-filters-toggle">
+          <button type="button" class="btn-toggle-filters" id="btn-toggle-filters">
+            <span>Query Filters &amp; Parameters</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <div class="rag-filters-panel hidden" id="rag-filters-panel">
+          <div class="form-group">
+            <label for="rag-filter-video">Scope to Video:</label>
+            <select id="rag-filter-video">
+              <option value="">All Videos in Corpus</option>
+            </select>
+            <input type="hidden" id="filter-video-scope" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="rag-filter-severity">Min Severity:</label>
+              <select id="rag-filter-severity">
+                <option value="">Any Severity</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="rag-filter-topk">Top-K Episodes:</label>
+              <select id="rag-filter-topk">
+                <option value="3">3 Episodes</option>
+                <option value="4" selected>4 Episodes</option>
+                <option value="6">6 Episodes</option>
+                <option value="10">10 Episodes</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-switches">
+            <label class="switch-control">
+              <input type="checkbox" id="rag-filter-anomaly" />
+              <span class="switch-slider"></span>
+              <span class="switch-label">Anomalies / Alerts Only</span>
+            </label>
+            <label class="switch-control">
+              <input type="checkbox" id="rag-filter-storyboards" checked />
+              <span class="switch-slider"></span>
+              <span class="switch-label">Attach Top Storyboards (Visual Re-verification)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Query Action Buttons -->
+        <div class="rag-buttons-row">
+          <button class="btn btn-secondary flex-1" id="btn-run-search">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Vector Search
+          </button>
+          <button class="btn btn-primary flex-1" id="btn-run-ask">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+            Ask SieveRAG
+          </button>
+        </div>
+      </div>
+
+      <!-- Results / Synthesis Feed -->
+      <div class="rag-results-scroll" id="rag-results-container">
+        <div class="rag-empty-state">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <p>Submit a natural language question or semantic search above to explore temporal video episodes with spatial grid citations.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Fullscreen / Zoom Modal for Storyboards -->
+  <div class="modal hidden" id="storyboard-modal">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-storyboard-title">Storyboard Detail</h3>
+        <button class="btn-close" id="btn-close-modal" title="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <img id="modal-storyboard-img" src="" alt="Zoomed Storyboard" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Synced Scope Proxy Helper -->
+  <script>
+    (function() {
+      const fvs = document.getElementById("filter-video-scope");
+      const rfv = document.getElementById("rag-filter-video");
+      if (fvs && rfv) {
+        try {
+          Object.defineProperty(fvs, "value", {
+            get: function() { return rfv.value; },
+            set: function(v) { rfv.value = v; }
+          });
+        } catch (e) {}
+      }
+    })();
+  </script>
+
+  <!-- Main JavaScript Application -->
+  <script src="/static/app.js"></script>
+</body>
+</html>

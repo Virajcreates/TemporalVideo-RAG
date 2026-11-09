@@ -1,0 +1,11 @@
+vlm-sieve>=0.3.0
+google-genai
+pinecone
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic>=2.5.0
+python-dotenv
+imageio-ffmpeg
+httpx
+

@@ -1,0 +1,37 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Virtual Environments & Python Cache
+.venv/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+
+# Runtime Video Storage, Storyboards & Local Vector Mirror
+backend/data/
+storage/
+vector_index.json
+*.mp4
+*.webm
+*.mov
+*.avi
+*.mp3
+*.jpg
+*.jpeg
+*.png
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
